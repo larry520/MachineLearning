@@ -406,6 +406,28 @@ if TestMode:
     my_model_loaded = joblib.load("my_model.pkl")
 # endregion
 # region -------------微调模型-------------
+from sklearn.model_selection import GridSearchCV
+# param_grid = [
+#     {'n_estimators':[3,10,30], 'max_features':[2,4,6,8]}
+#     ,{'bootstrap': [False], 'n_estimators':[3,10],'max_features':[2,3,4]}
+# ]
+# grid_search = GridSearchCV(forest_reg, param_grid, cv=2,
+#                            scoring='neg_mean_squared_error')
+# grid_search.fit(housing_prepared, housing_labels)
+# print(grid_search.best_params_)
+# print(grid_search.best_estimator_)
+
+best_estimator= RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=None,
+                                      max_features=6, max_leaf_nodes=None, min_impurity_decrease=0.0,
+                                      min_impurity_split=None, min_samples_leaf=1,min_samples_split=5,
+                                      n_estimators=100, n_jobs=None, oob_score=False,
+                                      random_state=None, verbose=0, warm_start=False)
+
+best_estimator.fit(housing_prepared, housing_labels)
+housing_predictions = best_estimator.predict(housing_prepared)
+forest_mse = mean_squared_error(housing_labels, housing_predictions)
+forest_rmse = np.sqrt(forest_mse)
+print("方差 forest_mse:\t",forest_mse,"\n标准差 forest_rmse:\t",forest_rmse)
 
 
 pass
