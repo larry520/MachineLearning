@@ -16,7 +16,7 @@ DOWNLOAD_ROOT = "https://raw.githubusercontent.com/ageron/handson-ml/master/"
 HOUSING_PATH = "datasets/housing"
 HOUSING_URL = DOWNLOAD_ROOT + HOUSING_PATH + "/housing.tgz"
 
-DisplayFlag = False
+DisplayFlag, TestMode = False, False
 
 def fetch_housing_data(housing_url=HOUSING_URL, housing_path=HOUSING_PATH):
     if not os.path.isdir(housing_path):
@@ -329,38 +329,83 @@ temp = housing_prepared.toarray()
 #----------选择和训练模型------------2020-1-5
 # region -------------线性模型-------------
 from sklearn.linear_model import LinearRegression
-lin_reg = LinearRegression()  # 创建一个回归的实例
-lin_reg.fit(housing_prepared, housing_labels)  # 拟合数据集分别是训练集以及训练标签
-
-some_data = housing.iloc[:5]  # 因为是一个DataFrame数据类型，所以利用iloc的方法进行处理
-some_labels = housing_labels.iloc[:5]
-some_data_prepared = full_pipeline.fit_transform(some_data)# 调用full_pipeline对数据进行预处理
-some_data_prepared = some_data_prepared.toarray()
-
-if some_data_prepared.shape[1]<lin_reg.coef_.size:
-    zero_array = np.zeros([some_data_prepared.shape[0],(lin_reg.coef_.size-some_data_prepared.shape[1])])
-    some_data_prepared = np.c_[some_data_prepared,zero_array]
-
-print("LinearRegression predictions:\t", lin_reg.predict(some_data_prepared))  # 调用predict()进行预测  独热特征扩展会导致
-print("Labels:\t\t", list(some_labels))
-
+# lin_reg = LinearRegression()  # 创建一个回归的实例
+# lin_reg.fit(housing_prepared, housing_labels)  # 拟合数据集分别是训练集以及训练标签
+#
+# some_data = housing.iloc[:5]  # 因为是一个DataFrame数据类型，所以利用iloc的方法进行处理
+# some_labels = housing_labels.iloc[:5]
+# some_data_prepared = full_pipeline.fit_transform(some_data)# 调用full_pipeline对数据进行预处理
+# some_data_prepared = some_data_prepared.toarray()
+#
+# if some_data_prepared.shape[1]<lin_reg.coef_.size:
+#     zero_array = np.zeros([some_data_prepared.shape[0],(lin_reg.coef_.size-some_data_prepared.shape[1])])
+#     some_data_prepared = np.c_[some_data_prepared,zero_array]
+#
+# print("LinearRegression predictions:\t", lin_reg.predict(some_data_prepared))  # 调用predict()进行预测  独热特征扩展会导致
+# print("Labels:\t\t", list(some_labels))
+#
 from sklearn.metrics import mean_squared_error
-housing_predictions = lin_reg.predict(housing_prepared)
-lin_mse = mean_squared_error(housing_labels, housing_predictions) # 方差
-lin_rmse = np.sqrt(lin_mse) # 标准差
-print("方差 lin_mse:\t",lin_mse,"\n标准差 lin_rmse:\t",lin_rmse)
+# housing_predictions = lin_reg.predict(housing_prepared)
+# lin_mse = mean_squared_error(housing_labels, housing_predictions) # 方差
+# lin_rmse = np.sqrt(lin_mse) # 标准差
+# print("方差 lin_mse:\t",lin_mse,"\n标准差 lin_rmse:\t",lin_rmse)
 # endregion
 
 # region -------------决策树模型-------------
 from sklearn.tree import DecisionTreeRegressor
-tree_reg = DecisionTreeRegressor()
-tree_reg.fit(housing_prepared, housing_labels)
-housing_predictions = tree_reg.predict(housing_prepared)
-tree_mse = mean_squared_error(housing_labels, housing_predictions) # 方差
-tree_rmse = np.sqrt(tree_mse) # 标准差
-print("方差 tree_mse:\t",tree_mse,"\n标准差 tree_rmse:\t",tree_rmse)
+# tree_reg = DecisionTreeRegressor()
+# tree_reg.fit(housing_prepared, housing_labels)
+# housing_predictions = tree_reg.predict(housing_prepared)
+# tree_mse = mean_squared_error(housing_labels, housing_predictions) # 方差
+# tree_rmse = np.sqrt(tree_mse) # 标准差
+# print("方差 tree_mse:\t",tree_mse,"\n标准差 tree_rmse:\t",tree_rmse)
+# endregion
+# region -------------随机森林模型-------------
+from sklearn.ensemble import RandomForestRegressor
+forest_reg = RandomForestRegressor()
+# forest_reg.fit(housing_prepared, housing_labels)
+# housing_predictions = forest_reg.predict(housing_prepared)
+# forest_mse = mean_squared_error(housing_labels, housing_predictions)
+# forest_rmse = np.sqrt(forest_mse)
+# print("方差 forest_mse:\t",forest_mse,"\n标准差 forest_rmse:\t",forest_rmse)
+# endregion
+# region -------------交叉验证-------------
+from sklearn.model_selection import cross_val_score
+if DisplayFlag:
+    # lin_scores = cross_val_score(lin_reg, housing_prepared, housing_labels
+    #                              ,scoring="neg_mean_squared_error", cv=10)
+    # lin_rmse_scores = np.sqrt(-lin_scores)
+    #
+    # tree_scores = cross_val_score(tree_reg, housing_prepared, housing_labels
+    #                          , scoring="neg_mean_squared_error", cv=10)
+    # tree_rmse_scroes = np.sqrt(-tree_scores)
+
+    forest_scores = cross_val_score(forest_reg, housing_prepared, housing_labels
+                             , scoring="neg_mean_squared_error", cv=3)
+    forest_rmse_scroes = np.sqrt(-forest_scores)
+
+
+    def display_scroes(scores):
+        print("交叉验证 :\t", scores)
+        print("Mean:\t", scores.mean())
+        print("Standard deviation:\t", scores.std())
+
+    # display_scroes(tree_rmse_scroes)
+    # display_scroes(lin_rmse_scores)
+    display_scroes(forest_rmse_scroes)
+
 # endregion
 
+# region -------------保存与加载模型-------------
+if TestMode:
+    my_model = None
+    from sklearn.externals import joblib
+    joblib.dump(my_model, "my_model.pkl")
+
+    # load model
+    my_model_loaded = joblib.load("my_model.pkl")
+# endregion
+# region -------------微调模型-------------
 
 
 pass
