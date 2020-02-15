@@ -1,0 +1,18 @@
+暴力预测
+anchor 先验框  3个尺度
+
+YOLOv3前向推理部分代码精读
+github:
+https://github.com/Mingqi-Yuan/YOLOv3
+blog:
+https://blog.csdn.net/weixin_42499236
+
+TensorFlow 2.0三大项目实战
+https://edu.csdn.net/course/detail/26956
+
+
+项目地址：https://github.com/Mingqi-Yuan/YOLOv3
+
+欢迎大家关注我的博客：https://blog.csdn.net/weixin_42499236《
+
+TensorFlow 2.0三大项目实战》：https://edu.csdn.net/course/detail/26956
