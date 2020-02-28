@@ -57,7 +57,7 @@ content = web_text[0].replace("try { window.getAreaStat =",'').replace("}catch(e
 content = eval(content)
 content_DF = pd.DataFrame(content)
 content_DF.to_csv("origin_data/"+time+".csv")
-print("获取 " + str(datetime.datetime.now()) + " 数据成功!")
+print("page_crab 获取 " + str(datetime.datetime.now()) + " 数据成功!")
 
 
 

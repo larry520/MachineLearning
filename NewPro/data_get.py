@@ -7,6 +7,9 @@ import ssl
 import datetime
 import time
 
+from NewPro import page_crab
+
+
 import matplotlib
 matplotlib.rcParams['font.sans-serif'] = ['SimHei']
 matplotlib.rcParams['font.family']='sans-serif'
@@ -55,7 +58,8 @@ if not os.path.exists(savepath):
     os.makedirs(savepath)
 
 for file in data_list:
-    html_to_csv(file,filepath,savepath)
+    if not os.path.exists(savepath + file.replace(".html",'.csv')):
+        html_to_csv(file,filepath,savepath)
 
 
 pass
