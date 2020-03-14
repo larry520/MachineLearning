@@ -1,6 +1,16 @@
 # -*- encoding:utf-8 -*-
 import json
 import numpy as np
+
+import matplotlib
+
+# 解决中文字体显示异常
+matplotlib.rcParams['font.sans-serif'] = ['SimHei']
+matplotlib.rcParams['font.family']='sans-serif'
+# 解决负号’-‘显示为方块的问题
+matplotlib.rcParams['axes.unicode_minus'] = False
+
+
 # region  Json 序列化与反序列化
 def json_serialize():
     d = '{"name":"小明","age":18,"skill":["开飞机","铁锅炖大鹅"]}'
@@ -83,5 +93,29 @@ def array_con():
     e = e_[1].tolist()
 array_con()
 
-# endregion、、
+# endregion
+
+# ----数据筛选
+array_a = np.arange(1,20)
+array_b = (array_a%2 == 0)
+array_c = array_a[(array_a%2 == 0)]
+array_d = array_b.astype(int)  # bool to int
+array_e = array_a[[2,5,8,3,6,9]]  # 索引 array_a 中对应的数值
+
+list_a = list(range(10))
+list_b = list(range(20,30))
+
+for i in range(len(list_b)):
+    print(list_a[i],list_b[i])
+
+n_x1, n_x2 = np.meshgrid(np.linspace(-1,2,30),np.linspace(-0.6,1,30))
+
+n_x1 = n_x1.reshape(-1,1)
+n_x2 = n_x2.reshape(-1,1)
+n_x = np.concatenate((n_x1,n_x2),axis=1)
+pass
+print(n_x)
+
+
+
 

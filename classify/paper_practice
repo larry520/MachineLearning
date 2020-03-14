@@ -10,10 +10,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
-
+import pandas as pd
 from sklearn.pipeline import Pipeline
-
 import time
+
+import matplotlib
+
+# 解决中文字体显示异常
+matplotlib.rcParams['font.sans-serif'] = ['SimHei']
+matplotlib.rcParams['font.family']='sans-serif'
+# 解决负号’-‘显示为方块的问题
+matplotlib.rcParams['axes.unicode_minus'] = False
 
 class linera_pred(object):
     """
@@ -25,13 +32,13 @@ class linera_pred(object):
         self.y = 4 + 3 * self.x + np.random.randn(100, 1)  # 4*x0 + 3*x1 +random
         self.x_b = np.concatenate((np.ones((100, 1)), self.x), axis=1)  # add x0=1 to each instance
 
-    def show_res(self,theta):
+    def show_res(self,theta,label="predict line"):
         x_new = np.array([[0], [2]])
         x_new_b = np.c_[np.ones((2, 1)), x_new]
         y_predict = x_new_b.dot(theta)
-        plt.plot(x_new, y_predict, 'r-')
+        plt.plot(x_new, y_predict, 'r-',label=label)
         plt.axis([0, 2, 0, 15])
-        plt.legend(["predict", "real"], loc="upper left")
+        plt.legend( loc="upper left")
         plt.show()
 
     def linear_reg(self):
@@ -46,12 +53,14 @@ class linera_pred(object):
         from sklearn.linear_model import LinearRegression
         lin_reg = LinearRegression()
         lin_reg.fit(self.x,self.y)
+
         theta = [lin_reg.intercept_, lin_reg.coef_]
         plt.scatter(self.x, self.y)
         self.show_res(theta)
 
     def lin_grad(self):
-        """批量梯度下降法 gradients = 2/m * X_b.T.dot(X_b
+        """批量梯度下降法
+        gradients = 2/m * self.x_b.T.dot(self.x_b.dot(theta) -self.y)
         批量梯度下降 超参数：学习率、迭代次数
         学习率：步长 过高->发散  过低->耗时
         对局部最小值曲线难以得到全局最小值"""
@@ -75,10 +84,12 @@ class linera_pred(object):
     def rand_grad(self,batch=1):
         """
          随机梯度下降法 超参数:迭代次数、学习率（t0,t1)
-         gradients = 2*xi.T.dot(xi.dot(theta)-yi)
+         gradients = 2/batch*xi.T.dot(xi.dot(theta)-yi)
          advantage: 有助于跳出局部最小值
          shortage: 永远找不出最小值，可逐步降低学习率使结果尽量靠近
+        :param batch: 每次随机梯度采用数据个数
         """
+
         n_epochs = 50
         t0,t1 = 5,50 # learning schedule hyper-parameter
         m = 100
@@ -125,6 +136,74 @@ class linera_pred(object):
         theta = [sgd_reg.intercept_, sgd_reg.coef_]
         print(theta)
 
+    def ridge_regression(self,**option):
+        """
+        岭回归
+        J(theta) = MSE(theta) + alpha/2 * theta.T.dot(theta)
+        闭式解岭回归
+        theta = np.linalg.inv((X.T.dot(X) + alpha*I)).dot((X.T).dot(Y)
+        套索回归
+        J(theta) = alpha(theta) + alpha* abs(theta)
+        弹性网络成本函数
+        J(theta) = alpha(theta) + r * alpha* abs(theta) + (1-r)/2 * alpha/2 * theta.T.dot(theta)
+
+
+        """
+        from sklearn.linear_model import Ridge
+        ridge_reg = Ridge(alpha=1, solver="cholesky") # Cholesky 的矩阵因式分解法，闭式解
+        ridge_reg.fit(self.x,self.y)
+        theta = [ridge_reg.intercept_,ridge_reg.coef_]
+        print("ridge_reg theta:", theta)
+
+        """岭回归"""
+        from sklearn.linear_model import SGDRegressor
+        # 超参数 penalty设置正则项 "l2"权重向量I2范数的一半，岭回归
+        sgd_reg = SGDRegressor(penalty="l2")
+        sgd_reg.fit(self.x,self.y.ravel())
+        theta = [sgd_reg.intercept_, sgd_reg.coef_]
+        print("sgd_reg theta:", theta)
+
+        """套索回归"""
+        from sklearn.linear_model import SGDRegressor
+        # 超参数 penalty设置正则项 "l1"权重向量I1范数，套索回归
+        sgd_reg = SGDRegressor(penalty="l1")
+        sgd_reg.fit(self.x, self.y.ravel())
+        theta = [sgd_reg.intercept_, sgd_reg.coef_]
+        print("sgd_reg I1 theta:", theta)
+
+        from sklearn.linear_model import Lasso
+        lasso_reg = Lasso(alpha=0.1)
+        lasso_reg.fit(self.x,self.y)
+        theta = [lasso_reg.intercept_, lasso_reg.coef_]
+        print("lasso_reg theta:", theta)
+
+        """弹性网络 """
+        from sklearn.linear_model import ElasticNet
+        elastic_net = ElasticNet(alpha=0.1, l1_ratio=0.5)
+        elastic_net.fit(self.x,self.y)
+        theta = [elastic_net.intercept_, elastic_net.coef_]
+        print("elastic_net theta:", theta)
+
+        """早期停止法基本实现"""
+        from sklearn.metrics import mean_squared_error
+        from sklearn import clone # 复制模型
+        # warm_start = True 调用fit 方法后会从停下的地方继续开始训练，而不会重新开始
+        # n_iter_no_change 迭代次数
+        sgd_reg = SGDRegressor(n_iter_no_change=1, warm_start=True, penalty=None
+                               , learning_rate="invscaling")
+        minimun_val_error = float("+inf") # 正无穷
+        best_epoch = None
+        best_model = None
+        for epoch in range(1000): # 叠代1000次，取其中最好的参数
+            sgd_reg.fit(self.x, self.y.ravel())
+            y_val_predict = sgd_reg.predict(self.x)
+            val_error = mean_squared_error(y_val_predict,self.y)
+            if val_error < minimun_val_error:
+                minimun_val_error = val_error
+                best_epoch = epoch
+                best_model = clone(sgd_reg)
+        print(best_model,"\n best_epoch: ", best_epoch,"\n theta:",[sgd_reg.intercept_,sgd_reg.coef_])
+
 class poly_pred(object):
     """
     多项式回归
@@ -161,7 +240,6 @@ class poly_pred(object):
         # self.view(theta)
         return theta
 
-
 def learn_curve(model):
     """分析不同数量训练集对训练结果的影响"""
     from sklearn.metrics import mean_squared_error
@@ -171,6 +249,7 @@ def learn_curve(model):
     y = 0.5 * x ** 2 + x + 2 + np.random.randn(100, 1)
 
     def view(model=model):
+        """观测不同数量数据集对模型训练结果影响"""
         x_train,x_val,y_train,y_val = train_test_split(x,y)
         train_error, val_errors = [],[]
         for m in range(1,len(x_train)):
@@ -181,13 +260,31 @@ def learn_curve(model):
             val_errors.append(mean_squared_error(y_val,y_val_predict))
         plt.plot(np.sqrt(train_error),"r-+",linewidth=2,label="train")
         plt.plot(np.sqrt(val_errors),"b-",linewidth=3,label="val")
+        plt.legend(loc="upper right")
         plt.axis([-0.5,80,-0.5,4])
-
 
     view()
 
+class decision_edge(object):
+    def __init__(self):
+        from sklearn import datasets
+        self.iris = datasets.load_iris()
+        self.x = self.iris["data"][:,3:] # petal width
+        self.y = (self.iris["target"]==2).astype(np.int) # 1 if Iris-Virginica, else 0
 
+        from sklearn.linear_model import LogisticRegression
+        log_reg = LogisticRegression()
+        log_reg.fit(self.x,self.y)
+        self.x_new = np.linspace(0, 3, 1000).reshape(-1, 1)
+        y_proba = log_reg.predict_proba(self.x_new)
+        plt.plot(self.x_new, y_proba[:,1], "g-", label="Iris-Virginica")
+        plt.plot(self.x_new, y_proba[:,0], "b--", label="Not Iris-Virginica")
+        plt.xlabel("花瓣宽度")
+        plt.ylabel("概率")
+        plt.legend()
 
+temp = decision_edge()
+print(temp.iris)
 
 
 
@@ -195,11 +292,16 @@ def learn_curve(model):
 
 if __name__ == "__main__":
 
-    case = [3]
+    case = [4]
 
     if 1 in case :
         tem = linera_pred()
-        tem.rand_grad(batch=20)
+        # tem.rand_grad(batch=20)
+        tem.ridge_regression(alfa=0)
+        tem.ridge_regression(alfa=1)
+        tem.ridge_regression(alfa=10)
+        tem.ridge_regression(alfa=100)
+
     elif 2 in case :
         tem = poly_pred()
         tem.view(tem.poly_linear())
@@ -209,11 +311,17 @@ if __name__ == "__main__":
         # learn_curve(lin_reg)
         plt.pause(0.01)
         plt.figure("poly_features")
+        # 使用3级多项式进行拟合，看学习率随训练集变化
         polynominal_regression = Pipeline([
-            ("poly_features",PolynomialFeatures(degree=10,include_bias=False)),
+            ("poly_features",PolynomialFeatures(degree=3,include_bias=False)),
             ("sgd_reg",LinearRegression()),
         ])
         learn_curve(polynominal_regression)
+
+    elif 4 in case:
+        tem = linera_pred()
+        tem.ridge_regression()
+
 
 
 

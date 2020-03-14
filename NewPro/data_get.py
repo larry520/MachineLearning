@@ -43,23 +43,31 @@ def html_to_csv(file,filepath,savepath):
         content_DF.to_csv(savepath + file_name + ".csv")
         print("获取 " + file + " 数据成功!")
 
+if __name__ == "__main__":
 
-filepath = "/Users/dmsoft/MachineLearning/NewPro/origin_data/"
-files = list(os.walk(filepath))
-file_names = files[0][2]
-data_list = []
-for i in file_names:
-    """获取所有的html文件"""
-    if "html" in i:
-        data_list.append(i)
+    page_crab.data_crab()
 
-savepath = "./csv_data/"
-if not os.path.exists(savepath):
-    os.makedirs(savepath)
+    filepath = "/Users/dmsoft/MachineLearning/NewPro/origin_data/"
+    files = list(os.walk(filepath))
+    file_names = files[0][2]
+    data_list = []
+    for i in file_names:
+        """获取所有的html文件"""
+        if "html" in i:
+            data_list.append(i)
 
-for file in data_list:
-    if not os.path.exists(savepath + file.replace(".html",'.csv')):
-        html_to_csv(file,filepath,savepath)
+    savepath = "/Users/dmsoft/MachineLearning/NewPro/csv_data/"
+    if not os.path.exists(savepath):
+        os.makedirs(savepath)
+
+    for file in data_list:
+        if not os.path.exists(savepath + file.replace(".html",'.csv')):
+            html_to_csv(file,filepath,savepath)
+    while True:
+        a = 0
+        if a ==5:
+            print("go on ...")
+            a = 0
+        time.sleep(1)
 
 
-pass

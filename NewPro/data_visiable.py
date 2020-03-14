@@ -28,28 +28,26 @@ data_list = get_csv(path)
     确诊病例，可疑人数，治愈人数，死亡人数 DataFrame
 
 """
+def data_view():
+    area = "湖北"
 
-area = "湖北"
+    data = pd.DataFrame(columns=("date","area","confirmedCount", "suspectedCount", "curedCount", "deadCount"))
 
-data = pd.DataFrame(columns=("date","area","confirmedCount", "suspectedCount", "curedCount", "deadCount"))
-
-for i,file in enumerate(data_list):
-    origin_data = pd.read_csv(path+file)
-    row = origin_data[(origin_data["provinceShortName"]==area)].index.tolist()
-    if len(row) !=0:
-        t1 = origin_data["confirmedCount"][row[0]]
-        t2 = file.replace(".csv",'')
-        data = data.append([{"date":file.replace(".csv",''),
-                          "area":area,
-                          "confirmedCount":origin_data["confirmedCount"][row[0]],
-                          "suspectedCount":origin_data["suspectedCount"][row[0]],
-                          "curedCount":origin_data["curedCount"][row[0]],
-                          "deadCount":origin_data["deadCount"][row[0]]}],ignore_index=True)
+    for i,file in enumerate(data_list):
+        origin_data = pd.read_csv(path+file)
+        row = origin_data[(origin_data["provinceShortName"]==area)].index.tolist()
+        if len(row) !=0:
+            t1 = origin_data["confirmedCount"][row[0]]
+            t2 = file.replace(".csv",'')
+            data = data.append([{"date":file.replace(".csv",''),
+                              "area":area,
+                              "confirmedCount":origin_data["confirmedCount"][row[0]],
+                              "suspectedCount":origin_data["suspectedCount"][row[0]],
+                              "curedCount":origin_data["curedCount"][row[0]],
+                              "deadCount":origin_data["deadCount"][row[0]]}],ignore_index=True)
 
 
-data.plot()
-
-pass
+    data.plot()
 
 
 
