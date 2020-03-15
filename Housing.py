@@ -420,7 +420,7 @@ grid_search.fit(housing_prepared, housing_labels)
 # print(grid_search.best_estimator_)
 feature_importances = grid_search.best_estimator_.feature_importances_
 print(feature_importances)
-
+#
 # best_estimator= RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=None,
 #                                       max_features=6, max_leaf_nodes=None, min_impurity_decrease=0.0,
 #                                       min_impurity_split=None, min_samples_leaf=1,min_samples_split=5,
@@ -432,7 +432,7 @@ print(feature_importances)
 # forest_mse = mean_squared_error(housing_labels, housing_predictions)
 # forest_rmse = np.sqrt(forest_mse)
 # print("方差 forest_mse:\t",forest_mse,"\n标准差 forest_rmse:\t",forest_rmse)
-
+#
 
 pass
 

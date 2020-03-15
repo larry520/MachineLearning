@@ -15,6 +15,9 @@ from sklearn.svm import LinearSVC, LinearSVR, SVR
 from sklearn.linear_model import LinearRegression
 from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 from sklearn.metrics import confusion_matrix
+from sklearn.datasets import make_moons
+from sklearn.model_selection import GridSearchCV
+
 
 import time
 
@@ -164,19 +167,33 @@ class svm_reg_gather(object):
 
 from sklearn.datasets import load_iris
 iris = load_iris()
-x = iris.data[:,2:] # petal(花瓣) length and width
+x = iris.data[:, 2:]  # petal(花瓣) length and width
 y = iris.target
 class decision_tree_method(object):
 
-    def decision_tree(self,x,y):
-        self.tree_clf = DecisionTreeClassifier(max_depth=2)
+
+    def decision_tree_clf(self,x,y):
+        """如果不限制最大深度，会直到做到基尼系数为0
+            min_samples_split 分裂前节点必须有最小分类数
+            min_samples_leaf 叶节点最小样本数量
+            min_weight_fraction_leaf 同上，计量方式加权实例总数的占比
+            max_leaf_nodes 最大叶节点数量
+            max_features 最大特征数量
+
+        """
+        self.tree_clf = DecisionTreeClassifier(max_depth=5)
         self.tree_clf.fit(x,y)
         return self.tree_clf
 
-    def tree_view(self):
+    def decision_tree_reg(self,x,y):
+        self.tree_reg = DecisionTreeRegressor(max_depth=2)
+        self.tree_reg.fit(x,y)
+        return self.tree_reg
+
+    def tree_view(self,model,filename="iris.dot"):
         from sklearn.tree import export_graphviz
-        data = export_graphviz(self.tree_clf,
-            out_file="iris.dot",
+        data = export_graphviz(model,
+            out_file=filename,
             feature_names=iris.feature_names[2:],
             class_names=iris.target_names,
             rounded=True,
@@ -184,16 +201,79 @@ class decision_tree_method(object):
         )
         return data
 
+def test_decision_tree_method():
+    clf = decision_tree_method()
+    clf_model = clf.decision_tree_clf(x,y)
+    dot_data = clf.tree_view(clf_model,"iris_clf.dot")
+
+    reg_model = clf.decision_tree_reg(x,y)
+    clf.tree_view(reg_model,"iris_reg.dot")
+
+    """混淆矩阵"""
+    # pred = model.predict(x)
+    # conf_mx = confusion_matrix(y,pred)
+    # row_sums = conf_mx.sum(axis=1,keepdims=True)  # 缩成1列，行求和
+    # norm_conf_ms = conf_mx/row_sums
+    # # 用 0 填充矩阵的对角值
+    # np.fill_diagonal(norm_conf_ms,0)
+    # plt.matshow(norm_conf_ms,cmap="gray")
+
+# test_decision_tree_method()
+
+# def tree_moons(figure):
+from sklearn.model_selection import train_test_split
+import pandas as pd
+data =make_moons(n_samples=1000, noise=0.4)
+data = np.concatenate((data[0],data[1].reshape(-1,1)),axis=1)
+train_set,test_set = train_test_split(data,test_size=0.2,random_state=42)
+x_train = train_set[:,:2]
+y_train = train_set[:,2]
+x_test = test_set[:,:2]
+y_test = test_set[:,2]
+# plt.figure("Real")
+def origin_plot(figure, x=x_train,y=y_train):
+    plt.figure(figure)
+    for i in range(len(x)):
+        if y[i] == 0:
+            plt.scatter(x[i,0],x[i,1],c="r")
+        else:
+            plt.scatter(x[i,0],x[i,1],c="b")
+    plt.xlabel("x1")
+    plt.ylabel("x2")
+# origin_plot(figure=1)
+
+decision_tree_clf = DecisionTreeClassifier()
+param_grid = [
+    {"max_depth":[3,6,9,15,20],'max_leaf_nodes':[5,10,50,100],"min_samples_split":[2,5,10,20]}
+
+]
+grid_search = GridSearchCV(decision_tree_clf, param_grid, cv=3,
+                           scoring='neg_mean_squared_error')
+grid_search.fit(x_train,y_train)
+print(grid_search.best_params_, grid_search.best_estimator_)
+
+best_estimator_ = DecisionTreeClassifier(ccp_alpha=0.0, class_weight=None, criterion='gini',
+                       max_depth=3, max_features=None, max_leaf_nodes=5,
+                       min_impurity_decrease=0.0, min_impurity_split=None,
+                       min_samples_leaf=1, min_samples_split=2,
+                       min_weight_fraction_leaf=0.0, presort='deprecated',
+                       random_state=None, splitter='best')
+
+best_estimator_.fit(x_train,y_train)
+y_pred = best_estimator_.predict(x_test)
+
+from sklearn.metrics import confusion_matrix, precision_score, recall_score
+print(precision_score(y_test,y_pred))
+cmx = confusion_matrix(y_test,y_pred)
+row_sum = np.sum(cmx,axis=1)
 
 
-clf = decision_tree_method()
-model = clf.decision_tree(x,y)
-pred = model.predict(x)
-conf_mx = confusion_matrix(y,pred)
-row_sums = conf_mx.sum(axis=1,keepdims=True)  # 缩成1列，行求和
-norm_conf_ms = conf_mx/row_sums
-# 用 0 填充矩阵的对角值
-np.fill_diagonal(norm_conf_ms,0)
-plt.matshow(norm_conf_ms,cmap="gray")
-dot_data = clf.tree_view()
-
+def tree_view( model, filename="moon.dot"):
+    from sklearn.tree import export_graphviz
+    data = export_graphviz(model,
+                           out_file=filename,
+                           rounded=True,
+                           filled=True
+                           )
+    return data
+tree_view(best_estimator_)
