@@ -1,9 +1,8 @@
 # -*- encoding:UTF-8 -*-
 
-from minist.unpack import *
+from ML_basic.minist.unpack import *
 import numpy as np
 from sklearn.model_selection import cross_val_predict, cross_val_score
-import threading
 from sklearn.metrics import confusion_matrix
 
 
@@ -31,9 +30,9 @@ X_trian_knn_pred = cross_val_predict(knn_clf,X_train,X_label,cv=3)
 conf_mx = confusion_matrix(X_label, X_trian_knn_pred)
 plt.matshow(conf_mx)  # 混淆矩阵图，彩色的
 # 计算错误率
-np.fill_diagonal(conf_mx,0)
 row_sums = conf_mx.sum(axis=1, keepdims=True)
 norm_conf_mx = conf_mx/row_sums  # 每行除以该类别个数，得到相应错误识别的概率
+np.fill_diagonal(norm_conf_mx,0)
 plt.matshow(norm_conf_mx, cmap=plt.cm.get_cmap("gray"))
 
 cl_a,cl_b = 1,7

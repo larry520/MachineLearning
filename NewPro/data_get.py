@@ -24,7 +24,7 @@ def html_to_csv(file,filepath,savepath):
         tree = etree.HTML(page)
 
         web_textChina = tree.xpath("//script[@id='getAreaStat']/text()")
-        web_textWorld = tree.xpath("//script[@id='getListByCountryTypeService2']/text()")
+        web_textWorld = tree.xpath("//script[@id='getListByCountryTypeService2true']/text()")
 
         if len(web_textChina) == 0:
             print("解析错误！")
@@ -34,7 +34,7 @@ def html_to_csv(file,filepath,savepath):
 
         if len(web_textWorld) == 0:
             print("解析错误！")
-        content2 = web_textWorld[0].replace("try { window.getListByCountryTypeService2 =", '').replace("}catch(e){}", '')
+        content2 = web_textWorld[0].replace("try { window.getListByCountryTypeService2true =", '').replace("}catch(e){}", '')
         # content = json.loads(content)  # 可处理复杂的字典嵌套
         content_DF2 = pd.DataFrame(eval(content2))
         content_DF2.to_csv(savepath+ file_name+"_Nation.csv")
@@ -63,11 +63,11 @@ if __name__ == "__main__":
     for file in data_list:
         if not os.path.exists(savepath + file.replace(".html",'.csv')):
             html_to_csv(file,filepath,savepath)
-    while True:
-        a = 0
-        if a ==5:
-            print("go on ...")
-            a = 0
-        time.sleep(1)
+    # while True:
+    #     a = 0
+    #     if a ==5:
+    #         print("go on ...")
+    #         a = 0
+    #     time.sleep(1)
 
 

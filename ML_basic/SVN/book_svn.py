@@ -220,60 +220,59 @@ def test_decision_tree_method():
 
 # test_decision_tree_method()
 
-# def tree_moons(figure):
-from sklearn.model_selection import train_test_split
-import pandas as pd
-data =make_moons(n_samples=1000, noise=0.4)
-data = np.concatenate((data[0],data[1].reshape(-1,1)),axis=1)
-train_set,test_set = train_test_split(data,test_size=0.2,random_state=42)
-x_train = train_set[:,:2]
-y_train = train_set[:,2]
-x_test = test_set[:,:2]
-y_test = test_set[:,2]
-# plt.figure("Real")
-def origin_plot(figure, x=x_train,y=y_train):
-    plt.figure(figure)
-    for i in range(len(x)):
-        if y[i] == 0:
-            plt.scatter(x[i,0],x[i,1],c="r")
-        else:
-            plt.scatter(x[i,0],x[i,1],c="b")
-    plt.xlabel("x1")
-    plt.ylabel("x2")
-# origin_plot(figure=1)
+def tree_moons():
+    from sklearn.model_selection import train_test_split
+    import pandas as pd
+    data =make_moons(n_samples=1000, noise=0.4)
+    data = np.concatenate((data[0],data[1].reshape(-1,1)),axis=1)
+    train_set,test_set = train_test_split(data,test_size=0.2,random_state=42)
+    x_train = train_set[:,:2]
+    y_train = train_set[:,2]
+    x_test = test_set[:,:2]
+    y_test = test_set[:,2]
+    # plt.figure("Real")
+    def origin_plot(figure, x=x_train,y=y_train):
+        plt.figure(figure)
+        for i in range(len(x)):
+            if y[i] == 0:
+                plt.scatter(x[i,0],x[i,1],c="r")
+            else:
+                plt.scatter(x[i,0],x[i,1],c="b")
+        plt.xlabel("x1")
+        plt.ylabel("x2")
+    # origin_plot(figure=1)
 
-decision_tree_clf = DecisionTreeClassifier()
-param_grid = [
-    {"max_depth":[3,6,9,15,20],'max_leaf_nodes':[5,10,50,100],"min_samples_split":[2,5,10,20]}
+    decision_tree_clf = DecisionTreeClassifier()
+    param_grid = [
+        {"max_depth":[3,6,9,15,20],'max_leaf_nodes':[5,10,50,100],"min_samples_split":[2,5,10,20]}
 
-]
-grid_search = GridSearchCV(decision_tree_clf, param_grid, cv=3,
-                           scoring='neg_mean_squared_error')
-grid_search.fit(x_train,y_train)
-print(grid_search.best_params_, grid_search.best_estimator_)
+    ]
+    grid_search = GridSearchCV(decision_tree_clf, param_grid, cv=3,
+                               scoring='neg_mean_squared_error')
+    grid_search.fit(x_train,y_train)
+    print(grid_search.best_params_, grid_search.best_estimator_)
 
-best_estimator_ = DecisionTreeClassifier(ccp_alpha=0.0, class_weight=None, criterion='gini',
-                       max_depth=3, max_features=None, max_leaf_nodes=5,
-                       min_impurity_decrease=0.0, min_impurity_split=None,
-                       min_samples_leaf=1, min_samples_split=2,
-                       min_weight_fraction_leaf=0.0, presort='deprecated',
-                       random_state=None, splitter='best')
+    grid_search.best_estimator_.fit(x_train,y_train)
+    y_pred = grid_search.best_estimator_.predict(x_test)
 
-best_estimator_.fit(x_train,y_train)
-y_pred = best_estimator_.predict(x_test)
+    from sklearn.metrics import confusion_matrix, precision_score, recall_score
+    print(precision_score(y_test,y_pred))
+    conf_mx = confusion_matrix(y_test,y_pred)
 
-from sklearn.metrics import confusion_matrix, precision_score, recall_score
-print(precision_score(y_test,y_pred))
-cmx = confusion_matrix(y_test,y_pred)
-row_sum = np.sum(cmx,axis=1)
+    row_sums = np.sum(conf_mx,axis=1, keepdims=True)
+    norm_conf_mx = conf_mx/row_sums  # 每行除以该类别个数，得到相应错误识别的概率
+
+    np.fill_diagonal(norm_conf_mx,0)
+    plt.matshow(norm_conf_mx, cmap=plt.cm.get_cmap("gray"))
+
+    def tree_view( model, filename="moon.dot"):
+        from sklearn.tree import export_graphviz
+        data = export_graphviz(model,
+                               out_file=filename,
+                               rounded=True,
+                               filled=True
+                               )
+        return data
 
 
-def tree_view( model, filename="moon.dot"):
-    from sklearn.tree import export_graphviz
-    data = export_graphviz(model,
-                           out_file=filename,
-                           rounded=True,
-                           filled=True
-                           )
-    return data
-tree_view(best_estimator_)
+tree_moons()

@@ -1,6 +1,6 @@
 # -*- encoding:UTF-8 -*-
 
-from minist.unpack import *
+from ML_basic.minist.unpack import *
 import numpy as np
 
 
