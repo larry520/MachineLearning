@@ -34,7 +34,7 @@ def html_to_csv(file,filepath,savepath):
 
         if len(web_textWorld) == 0:
             print("解析错误！")
-        content2 = web_textWorld[0].replace("try { window.getListByCountryTypeService2true =", '').replace("}catch(e){}", '')
+        content2 = web_textWorld[0].replace("try { window.getListByCountryTypeService2true =", '').replace("}catch(e){}", '').replace("true","True").replace("false","False")
         # content = json.loads(content)  # 可处理复杂的字典嵌套
         content_DF2 = pd.DataFrame(eval(content2))
         content_DF2.to_csv(savepath+ file_name+"_Nation.csv")
