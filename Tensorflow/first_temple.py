@@ -7,6 +7,8 @@
 @time:2020/3/23 23:01
 """
 
+# https://codeload.github.com/dragen1860/Deep-Learning-with-TensorFlow-book/zip/master
+
 import tensorflow as tf
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
