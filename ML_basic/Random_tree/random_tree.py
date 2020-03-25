@@ -261,7 +261,7 @@ def summary():
                                          )
     voting_clf = VotingClassifier(
         estimators=[('lf', log_clf), ('rf', rnd_clf), ('rbf_svc', rbf_svm_clf)
-                    ,('et', et_clf),# ('gbdt', gbdt_cl)
+                    ,('et', et_clf),('gbdt', gbdt_cl)
                     ],
         voting="hard"
         )
@@ -270,3 +270,6 @@ def summary():
         clf.fit(x_train,y_train.ravel())
         y_pred = clf.predict(x_val)
         print(clf.__class__.__name__,accuracy_score(y_val,y_pred))
+
+summary()
+
